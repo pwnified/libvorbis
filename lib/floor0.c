@@ -11,7 +11,7 @@
  ********************************************************************
 
  function: floor backend 0 implementation
- last mod: $Id: floor0.c 16227 2009-07-08 06:58:46Z xiphmont $
+ last mod: $Id: floor0.c 19031 2013-12-03 19:20:50Z tterribe $
 
  ********************************************************************/
 
@@ -91,6 +91,8 @@ static vorbis_info_floor *floor0_unpack (vorbis_info *vi,oggpack_buffer *opb){
   for(j=0;j<info->numbooks;j++){
     info->books[j]=oggpack_read(opb,8);
     if(info->books[j]<0 || info->books[j]>=ci->books)goto err_out;
+    if(ci->book_param[info->books[j]]->maptype==0)goto err_out;
+    if(ci->book_param[info->books[j]]->dim<1)goto err_out;
   }
   return(info);
 
@@ -145,6 +147,9 @@ static vorbis_look_floor *floor0_look(vorbis_dsp_state *vd,
                                       vorbis_info_floor *i){
   vorbis_info_floor0 *info=(vorbis_info_floor0 *)i;
   vorbis_look_floor0 *look=_ogg_calloc(1,sizeof(*look));
+
+  (void)vd;
+
   look->m=info->order;
   look->ln=info->barkmap;
   look->vi=info;
@@ -175,10 +180,9 @@ static void *floor0_inverse1(vorbis_block *vb,vorbis_look_floor *i){
          vector */
       float *lsp=_vorbis_block_alloc(vb,sizeof(*lsp)*(look->m+b->dim+1));
 
-      for(j=0;j<look->m;j+=b->dim)
-        if(vorbis_book_decodev_set(b,lsp+j,&vb->opb,b->dim)==-1)goto eop;
+      if(vorbis_book_decodev_set(b,lsp,&vb->opb,look->m)==-1)goto eop;
       for(j=0;j<look->m;){
-        for(k=0;k<b->dim;k++,j++)lsp[j]+=last;
+        for(k=0;j<look->m && k<b->dim;k++,j++)lsp[j]+=last;
         last=lsp[j-1];
       }
 

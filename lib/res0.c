@@ -11,7 +11,7 @@
  ********************************************************************
 
  function: residue backend 0, 1 and 2 implementation
- last mod: $Id: res0.c 16962 2010-03-11 07:30:34Z xiphmont $
+ last mod: $Id: res0.c 19031 2013-12-03 19:20:50Z tterribe $
 
  ********************************************************************/
 
@@ -250,6 +250,7 @@ vorbis_info_residue *res0_unpack(vorbis_info *vi,oggpack_buffer *opb){
     int entries = ci->book_param[info->groupbook]->entries;
     int dim = ci->book_param[info->groupbook]->dim;
     int partvals = 1;
+    if (dim<1) goto errout;
     while(dim>0){
       partvals *= info->partitions;
       if(partvals > entries) goto errout;
@@ -389,8 +390,13 @@ static int local_book_besterror(codebook *book,int *a){
   return(index);
 }
 
+#ifdef TRAIN_RES
 static int _encodepart(oggpack_buffer *opb,int *vec, int n,
                        codebook *book,long *acc){
+#else
+static int _encodepart(oggpack_buffer *opb,int *vec, int n,
+                       codebook *book){
+#endif
   int i,bits=0;
   int dim=book->dim;
   int step=n/dim;
@@ -533,12 +539,18 @@ static long **_2class(vorbis_block *vb,vorbis_look_residue *vl,int **in,
 }
 
 static int _01forward(oggpack_buffer *opb,
-                      vorbis_block *vb,vorbis_look_residue *vl,
+                      vorbis_look_residue *vl,
                       int **in,int ch,
                       long **partword,
+#ifdef TRAIN_RES
                       int (*encode)(oggpack_buffer *,int *,int,
                                     codebook *,long *),
-                      int submap){
+                      int submap
+#else
+                      int (*encode)(oggpack_buffer *,int *,int,
+                                    codebook *)
+#endif
+){
   long i,j,k,s;
   vorbis_look_residue0 *look=(vorbis_look_residue0 *)vl;
   vorbis_info_residue0 *info=look->info;
@@ -608,9 +620,8 @@ static int _01forward(oggpack_buffer *opb,
             codebook *statebook=look->partbooks[partword[j][i]][s];
             if(statebook){
               int ret;
-              long *accumulator=NULL;
-
 #ifdef TRAIN_RES
+              long *accumulator=NULL;
               accumulator=look->training_data[s][partword[j][i]];
               {
                 int l;
@@ -622,10 +633,12 @@ static int _01forward(oggpack_buffer *opb,
                     look->training_max[s][partword[j][i]]=samples[l];
                 }
               }
-#endif
-
               ret=encode(opb,in[j]+offset,samples_per_partition,
                          statebook,accumulator);
+#else
+              ret=encode(opb,in[j]+offset,samples_per_partition,
+                         statebook);
+#endif
 
               look->postbits+=ret;
               resbits[partword[j][i]]+=ret;
@@ -635,19 +648,6 @@ static int _01forward(oggpack_buffer *opb,
       }
     }
   }
-
-  /*{
-    long total=0;
-    long totalbits=0;
-    fprintf(stderr,"%d :: ",vb->mode);
-    for(k=0;k<possible_partitions;k++){
-    fprintf(stderr,"%ld/%1.2g, ",resvals[k],(float)resbits[k]/resvals[k]);
-    total+=resvals[k];
-    totalbits+=resbits[k];
-    }
-
-    fprintf(stderr,":: %ld:%1.2g\n",total,(double)totalbits/total);
-    }*/
 
   return(0);
 }
@@ -728,12 +728,18 @@ int res0_inverse(vorbis_block *vb,vorbis_look_residue *vl,
 int res1_forward(oggpack_buffer *opb,vorbis_block *vb,vorbis_look_residue *vl,
                  int **in,int *nonzero,int ch, long **partword, int submap){
   int i,used=0;
+  (void)vb;
   for(i=0;i<ch;i++)
     if(nonzero[i])
       in[used++]=in[i];
 
   if(used){
-    return _01forward(opb,vb,vl,in,used,partword,_encodepart,submap);
+#ifdef TRAIN_RES
+    return _01forward(opb,vl,in,used,partword,_encodepart,submap);
+#else
+    (void)submap;
+    return _01forward(opb,vl,in,used,partword,_encodepart);
+#endif
   }else{
     return(0);
   }
@@ -794,7 +800,12 @@ int res2_forward(oggpack_buffer *opb,
   }
 
   if(used){
-    return _01forward(opb,vb,vl,&work,1,partword,_encodepart,submap);
+#ifdef TRAIN_RES
+    return _01forward(opb,vl,&work,1,partword,_encodepart,submap);
+#else
+    (void)submap;
+    return _01forward(opb,vl,&work,1,partword,_encodepart);
+#endif
   }else{
     return(0);
   }
@@ -828,7 +839,7 @@ int res2_inverse(vorbis_block *vb,vorbis_look_residue *vl,
         if(s==0){
           /* fetch the partition word */
           int temp=vorbis_book_decode(look->phrasebook,&vb->opb);
-          if(temp==-1 || temp>info->partvals)goto eopbreak;
+          if(temp==-1 || temp>=info->partvals)goto eopbreak;
           partword[l]=look->decodemap[temp];
           if(partword[l]==NULL)goto errout;
         }
