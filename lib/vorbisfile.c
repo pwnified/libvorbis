@@ -324,7 +324,7 @@ static int _fetch_headers(OggVorbis_File *vf,vorbis_info *vi,vorbis_comment *vc,
          vorbis_synthesis_idheader(&op)){
         /* vorbis header; continue setup */
         vf->ready_state=STREAMSET;
-        if((ret=vorbis_synthesis_headerin(vi,vc,&op))){
+        if(vorbis_synthesis_headerin(vi,vc,&op)){
           ret=OV_EBADHEADER;
           goto bail_header;
         }
@@ -775,7 +775,7 @@ static int _fetch_and_process_packet(OggVorbis_File *vf,
            we get one with the correct serialno */
 
         if(!readp)return(0);
-        if((ret=_get_next_page(vf,&og,-1))<0){
+        if(_get_next_page(vf,&og,-1) < 0){
           return(OV_EOF); /* eof. leave unitialized */
         }
 
@@ -856,7 +856,7 @@ static int _fetch_and_process_packet(OggVorbis_File *vf,
           if(ret)return(ret);
           vf->current_serialno=vf->os.serialno;
           vf->current_link++;
-          link=0;
+          link=0; // <-- Value stored to 'link' is never read
         }
       }
     }
@@ -1567,7 +1567,7 @@ int ov_pcm_seek_page(OggVorbis_File *vf,ogg_int64_t pos){
           vf->pcm_offset+=total;
           break;
         }else
-          result=ogg_stream_packetout(&vf->os,NULL);
+          result=ogg_stream_packetout(&vf->os,NULL); // <-- Value stored to 'result' is never read
       }
     }
   }
