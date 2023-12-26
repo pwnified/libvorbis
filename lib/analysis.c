@@ -26,6 +26,7 @@
 #include "os.h"
 #include "misc.h"
 
+
 /* decides between modes, dispatches to the appropriate mapping. */
 int vorbis_analysis(vorbis_block *vb, ogg_packet *op){
   int ret,i;
