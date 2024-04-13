@@ -220,7 +220,7 @@ extern int vorbis_encode_setup_init(vorbis_info *vi);
 extern int vorbis_encode_ctl(vorbis_info *vi,int number,void *arg);
 
 /**
- * \deprecated This is a deprecated interface. Please use vorbis_encode_ctl()
+ * deprecated This is a deprecated interface. Please use vorbis_encode_ctl()
  * with the \ref ovectl_ratemanage2_arg struct and \ref
  * OV_ECTL_RATEMANAGE2_GET and \ref OV_ECTL_RATEMANAGE2_SET calls in new code.
  *

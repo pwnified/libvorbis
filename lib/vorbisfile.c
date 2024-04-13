@@ -765,7 +765,7 @@ static int _fetch_and_process_packet(OggVorbis_File *vf,
     }
 
     if(vf->ready_state>=OPENED){
-      ogg_int64_t ret;
+      //ogg_int64_t ret;
 
       while(1){
         /* the loop is not strictly necessary, but there's no sense in
@@ -1905,7 +1905,7 @@ long ov_read_filter(OggVorbis_File *vf,char *buffer,int length,
 
     long channels=ov_info(vf,-1)->channels;
     long bytespersample=word * channels;
-    vorbis_fpu_control fpu;
+    __unused vorbis_fpu_control fpu;
     if(samples>length/bytespersample)samples=length/bytespersample;
 
     if(samples <= 0)
