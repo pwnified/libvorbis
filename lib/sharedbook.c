@@ -399,7 +399,10 @@ int vorbis_book_init_decode(codebook *c,const static_codebook *s){
       long lo=0,hi=0;
 
       for(i=0;i<tabn;i++){
-        ogg_uint32_t word=i<<(32-c->dec_firsttablen);
+
+		  // Left shift of 16 by 27 places cannot be represented in type 'int'
+		  ogg_uint32_t word = (uint32_t)i << (32 - c->dec_firsttablen);
+
         if(c->dec_firsttable[bitreverse(word)]==0){
           while((lo+1)<n && c->codelist[lo+1]<=word)lo++;
           while(    hi<n && word>=(c->codelist[hi]&mask))hi++;
