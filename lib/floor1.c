@@ -831,20 +831,24 @@ int floor1_encode(oggpack_buffer *opb,vorbis_block *vb,
            this limited range, but do it in the way that least screws
            an essentially gaussian probability distribution. */
 
-        if(val<0)
-          if(val<-headroom)
+        if (val<0) {
+          if (val<-headroom) {
             val=headroom-val-1;
-          else
-            val=-1-(val<<1);
-        else
-          if(val>=headroom)
+          } else {
+            //val=-1-(val<<1);
+            // Use an unsigned int for the bit shift operation to avoid that undefined behavior
+            val = -1 - ((int)((unsigned int)val << 1));
+          }
+        } else {
+          if (val>=headroom) {
             val= val+headroom;
-          else
+          } else {
             val<<=1;
-
-        out[i]=val;
-        post[ln]&=0x7fff;
-        post[hn]&=0x7fff;
+          }
+        }
+        out[i] = val;
+        post[ln] &= 0x7fff;
+        post[hn] &= 0x7fff;
       }
     }
 

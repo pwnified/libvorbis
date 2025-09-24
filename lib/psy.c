@@ -317,7 +317,12 @@ void _vp_psy_init(vorbis_look_psy *p,vorbis_info_psy *vi,
     for(;hi<=n && (hi<i+vi->noisewindowhimin ||
           toBARK(rate/(2*n)*hi)<(bark+vi->noisewindowhi));hi++);
 
-    p->bark[i]=((lo-1)<<16)+(hi-1);
+    //p->bark[i]=((lo-1)<<16)+(hi-1); // Left shift of negative value -4
+	  
+    // Assuming `p->bark[i]` is a 32-bit integer type (like uint32_t)
+    // Cast the result of (lo - 1) to an unsigned 32-bit integer before shifting.
+    // This ensures the shift is well-defined and fills with zeros.
+    p->bark[i] = (((uint32_t)(lo - 1)) << 16) + (hi - 1);
 
   }
 
@@ -342,10 +347,25 @@ void _vp_psy_init(vorbis_look_psy *p,vorbis_info_psy *vi,
     inthalfoc=(int)halfoc;
     del=halfoc-inthalfoc;
 
-    for(j=0;j<P_NOISECURVES;j++)
-      p->noiseoffset[j][i]=
-        p->vi->noiseoff[j][inthalfoc]*(1.-del) +
-        p->vi->noiseoff[j][inthalfoc+1]*del;
+	  // Index 17 out of bounds for type 'float[17]'
+//    for(j=0;j<P_NOISECURVES;j++)
+//      p->noiseoffset[j][i]=
+//        p->vi->noiseoff[j][inthalfoc]*(1.-del) +
+//        p->vi->noiseoff[j][inthalfoc+1]*del; // <-- Index out of bounds
+	  
+    for (j = 0; j < P_NOISECURVES; j++) {
+      float val;
+      if (inthalfoc == P_BANDS-1) {
+        // If we are at the last index, just use that value (no interpolation)
+        val = p->vi->noiseoff[j][inthalfoc];
+      } else {
+        // Standard linear interpolation
+        val = p->vi->noiseoff[j][inthalfoc]*(1.-del) +
+		      p->vi->noiseoff[j][inthalfoc+1]*del;
+	  }
+      p->noiseoffset[j][i] = val;
+    }
+
 
   }
 #if 0
