@@ -403,7 +403,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					A4B463CB1A90063900298931 = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -573,6 +573,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
@@ -627,6 +628,7 @@
 				INSTALL_PATH = /Users/pwnified/Projects/MultiTrack/OggVorbis;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				OTHER_CFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
@@ -667,6 +669,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -703,6 +706,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VALIDATE_PRODUCT = YES;
